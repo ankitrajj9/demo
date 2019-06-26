@@ -1,0 +1,610 @@
+< ------------ controller -------------->
+package com.ankit.controller;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+
+import com.ankit.service.StudentService;
+import com.ankit.entity.Hobby;
+import com.ankit.entity.Student;
+
+@Controller
+public class StudentController {
+	@Autowired
+	private StudentService studentService;
+	
+	@RequestMapping(value="/studform",method=RequestMethod.GET)
+	public String addEmployee(Model m){
+		Student s=new Student();
+		List<Hobby> hobbies=new ArrayList<Hobby>();
+		Hobby h = new Hobby();
+		h.setSportname("Basket ball");
+		hobbies.add(new Hobby("Cricket"));
+		hobbies.add(new Hobby("Football"));
+		hobbies.add(new Hobby("Volleyball"));
+		hobbies.add(h);
+		s.setHobbies(hobbies);
+		m.addAttribute("listhobb",hobbies);
+		m.addAttribute("command",s);
+		//m.addAttribute("command", new Hobby());
+		return "studform";
+	}
+	
+	@RequestMapping(value="/save",method=RequestMethod.POST)
+	public String saveEmployee(@ModelAttribute("stud") Student student){
+		
+	    studentService.addStudent(student);
+		return "redirect:/viewstudent";
+	}
+	@RequestMapping(value="/viewstudent")
+	public String viewemp(Model m){
+		List<Student> stu = studentService.listStudents();
+		m.addAttribute("list",stu);
+		return "viewstudent";
+	}
+	@RequestMapping(value="/deletestud/{id}",method=RequestMethod.GET)
+	public String remove(@PathVariable("id")int id){
+		studentService.deleteStudent(id);
+		return"redirect:/viewstudent";
+	}
+	@RequestMapping(value="/editstud/{id}")
+	public String editEmployee(@PathVariable int id,Model m){
+		Student s = studentService.getStudent(id);
+		List<Hobby> hobbies=new ArrayList<Hobby>();
+		Hobby h = new Hobby();
+		h.setSportname("Basketball");
+		hobbies.add(new Hobby("Cricket"));
+		hobbies.add(new Hobby("Football"));
+		hobbies.add(new Hobby("Volleyball"));
+		hobbies.add(h);
+		s.setHobbies(hobbies);
+		m.addAttribute("listhobb",hobbies);
+		m.addAttribute("command",s);
+		return "studeditform";
+	}
+	@RequestMapping(value="/editsave",method = RequestMethod.POST)
+	public String editsave(@ModelAttribute("stud") Student student){
+		studentService.updateStudent(student);
+		return "redirect:/viewstudent";
+	}
+	@RequestMapping(value="/test")
+	public String test(@ModelAttribute Student s,Model m){
+		List<Student> l = studentService.listStudents();
+		m.addAttribute("lis", l);
+		return "testfile";
+	}
+	
+
+}
+
+<---------------- studentdao _------------->
+package com.ankit.dao;
+
+import java.util.List;
+
+import com.ankit.entity.Student;
+
+public interface StudentDAO {
+	public void addStudent(Student student);
+	public void updateStudent(Student student);
+	public List<Student> listStudents();
+	public Student getStudent(int id);
+	public void deleteStudent(int id);
+	
+	
+
+}
+< ------------------studentdaoimpl---------------->
+package com.ankit.dao;
+
+import java.util.List;
+
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.ankit.entity.Student;
+
+@Repository
+public class StudentDAOImpl implements StudentDAO{
+	@Autowired
+	private SessionFactory sessionfactory;
+
+	@Override
+	public void addStudent(Student student) {
+		// TODO Auto-generated method stub
+		sessionfactory.getCurrentSession().saveOrUpdate(student);
+		
+	}
+
+	@Override
+	public void updateStudent(Student student) {
+		// TODO Auto-generated method stub
+		sessionfactory.getCurrentSession().update(student);
+		
+	}
+
+	@Override
+	public List<Student> listStudents() {
+		// TODO Auto-generated method stub
+		return (List<Student>) sessionfactory.getCurrentSession().createQuery("from Student").list();
+	}
+
+	@Override
+	public Student getStudent(int id) {
+		// TODO Auto-generated method stub
+		
+		return (Student) sessionfactory.getCurrentSession().get(Student.class, id);
+	}
+
+	@Override
+	public void deleteStudent(int id) {
+		// TODO Auto-generated method stub
+		Student student = getStudent(id);
+		sessionfactory.getCurrentSession().delete(student);
+		
+	}
+	
+
+}
+<-------------------hobby-------------------------->
+package com.ankit.entity;
+
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="hobby2212")
+public class Hobby {
+	
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int sportid;
+	
+	private String sportname;
+	
+	public Hobby(String sportname) {
+		super();
+		this.sportname = sportname;
+	}
+	public Hobby() {
+		super();
+	}
+	public Hobby(int sportid, String sportname) {
+		super();
+		this.sportid = sportid;
+		this.sportname = sportname;
+	}
+	public int getSportid() {
+		return sportid;
+	}
+	public void setSportid(int sportid) {
+		this.sportid = sportid;
+	}
+	public String getSportname() {
+		return sportname;
+	}
+	public void setSportname(String sportname) {
+		this.sportname = sportname;
+	}
+	
+	
+
+	
+	
+	
+	
+
+}
+<--------------------student---------------.>
+package com.ankit.entity;
+
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="student2212")
+public class Student {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id")
+	private int id;
+	
+	private String name;
+	
+	private String email;
+	
+	private String gender;
+	
+	//@OneToMany(mappedBy="student",fetch=FetchType.EAGER)
+	//private String[] hobbies;
+	@OneToMany(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+	@JoinColumn(name="student_id")
+	
+	private List<Hobby> hobbies;
+	
+	private String address;
+	
+	private String city;
+	
+	
+
+	public List<Hobby> getHobbies() {
+		return hobbies;
+	}
+
+	public void setHobbies(List<Hobby> hobbies) {
+		this.hobbies = hobbies;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	/*public String[] getHobbies() {
+		return hobbies;
+	}
+
+	public void setHobbies(String[] hobbies) {
+		this.hobbies = hobbies;
+	}*/
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	
+	
+	
+
+}
+<-----------------------------student servie---------------------------->
+package com.ankit.service;
+
+import java.util.List;
+
+import com.ankit.entity.Student;
+
+public interface StudentService {
+	public void addStudent(Student student);
+	public void updateStudent(Student student);
+	public List<Student> listStudents();
+	public Student getStudent(int id);
+	public void deleteStudent(int id);
+
+}
+
+<-----------------------student service impl _--------------------------->
+package com.ankit.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ankit.dao.StudentDAO;
+import com.ankit.entity.Student;
+
+@Service
+public class StudentServiceImpl implements StudentService{
+	@Autowired
+	private StudentDAO studentDAO;
+
+	@Override
+	@Transactional
+	public void addStudent(Student student) {
+		// TODO Auto-generated method stub
+		studentDAO.addStudent(student);
+		
+		
+	}
+
+	@Override
+	@Transactional
+	public void updateStudent(Student student) {
+		// TODO Auto-generated method stub
+		studentDAO.updateStudent(student);
+	}
+
+	@Override
+	@Transactional
+	public List<Student> listStudents() {
+		// TODO Auto-generated method stub
+		return studentDAO.listStudents();
+	}
+
+	@Override
+	@Transactional
+	public Student getStudent(int id) {
+		// TODO Auto-generated method stub
+		return studentDAO.getStudent(id);
+	}
+
+	@Override
+	@Transactional
+	public void deleteStudent(int id) {
+		// TODO Auto-generated method stub
+		studentDAO.deleteStudent(id);
+		
+	}
+
+}
+<======================spring-servlet ---------------------->
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+		
+		<annotation-driven />
+		
+		<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/jsps/" />
+		<beans:property name="suffix" value=".jsp" />
+		</beans:bean>
+		
+		<beans:bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<beans:property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+		<beans:property name="url"
+			value="jdbc:sqlserver://192.168.101.143:1440;databaseName=test_demo" />
+		<beans:property name="username" value="eProcDeveloper" />
+		<beans:property name="password" value="Epr0c@1234!" />
+	</beans:bean>
+	
+		<!-- Hibernate 5 SessionFactory Bean definition -->
+	<beans:bean id="hibernate5AnnotatedSessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<beans:property name="dataSource" ref="dataSource" />
+		<beans:property name="annotatedClasses">
+			<beans:list>
+				<beans:value>com.ankit.entity.Student</beans:value>
+				<beans:value>com.ankit.entity.Hobby</beans:value>
+			</beans:list>
+		</beans:property>
+		<beans:property name="hibernateProperties">
+			<beans:props>
+			<beans:prop key="hibernate.hbm2ddl.auto">update</beans:prop>
+				<beans:prop key="hibernate.dialect">org.hibernate.dialect.SQLServerDialect</beans:prop>
+				<beans:prop key="hibernate.show_sql">true</beans:prop>
+			</beans:props>
+		</beans:property>
+	</beans:bean>
+	
+	<context:component-scan base-package="com.ankit" />
+	
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	<beans:bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<beans:property name="sessionFactory" ref="hibernate5AnnotatedSessionFactory" />
+	</beans:bean>
+	
+	</beans:beans>
+  
+  <-----------------------web-------------------->
+  <?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>Pra5</display-name>
+  <welcome-file-list>
+  <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+  <servlet>
+  <servlet-name>spring</servlet-name>
+  <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+  <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+  <servlet-name>spring</servlet-name>
+  <url-pattern>/</url-pattern>
+  </servlet-mapping>
+</web-app>
+
+<-------------------------student form ------------------------------->
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>    
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>    
+  
+        <h1>Add New Student</h1>  
+       <form:form method="post" action="save">    
+        <table >    
+         <tr>    
+          <td>Name : </td>   
+          <td><form:input path="name"  /></td>  
+         </tr>    
+         <tr>    
+          <td>Email :</td>    
+          <td><form:input path="email" /></td>  
+         </tr>   
+         <tr>
+         <td>Gender : </td>
+         <td><form:radiobutton path="gender" value="Male"/>Male&nbsp;<form:radiobutton path="gender" value="Female"/>Female</td>
+         </tr>
+         <tr>
+		 <td>Hobbies:</td>
+		 <td>
+			<c:forEach items="${listhobb}" var="hobby">
+				<form:checkbox path="hobbies"  value="${hobby.sportname}"/>${hobby.sportname}
+			</c:forEach>				    
+		</td>
+		 </tr>
+		 <tr>
+			<td>Address: </td>
+			<td><form:textarea path="address" /></td>
+		</tr>
+		 
+         <tr>    
+          <td>City :</td>    
+          <td><form:select path="city">  
+        <form:option value="AHMEDABAD" label="AHMEDABAD"/>  
+        <form:option value="RAJKOT" label="RAJKOT"/>  
+        <form:option value="VADODARA" label="VADODARA"/>  
+        <form:option value="MAHESANA" label="MAHESANA"/>  
+        </form:select> </td>  
+         </tr>   
+         <tr>    
+          <td> </td>    
+          <td><input type="submit" value="Save" />
+          <input type="reset" value="Reset">
+          </td>    
+         </tr>    
+        </table>    
+       </form:form>  
+       
+       <--------------------------------- view student ----------------------------->
+         <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>    
+   <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>    
+  
+<h1>Students List</h1>  
+<table border="2" width="70%" cellpadding="2">  
+<tr><th>Id</th><th>Name</th><th>Email</th><th>Gender</th><th>Hobbies</th><th>Address</th><th>City</th><th>Edit</th><th>Delete</th></tr>  
+   <c:forEach var="stud" items="${list}">   
+   <tr>  
+   <td>${stud.id}</td>  
+   <td>${stud.name}</td>  
+   <td>${stud.email}</td>  
+   <td>${stud.gender}</td>
+    <td><c:forEach var="h" items="${stud.hobbies}">
+     ${h.sportname}    
+    </c:forEach></td>
+   <%-- <td>${stud.hobbies}</td> --%>
+   
+   <td>${stud.address}</td>
+   <td>${stud.city}</td>
+   <td><a href="editstud/${stud.id}">Edit</a></td>  
+   <td><a href="deletestud/${stud.id}">Delete</a></td>  
+   </tr>  
+   </c:forEach>  
+   </table>  
+   <br/>  
+   <a href="studform">Add New Student</a>  
+   <a href="test">Test data</a>
+   
+   <--------------------------student edit form ------------------>
+   <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>    
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>    
+  
+        <h1>Edit Student</h1>  
+       <form:form method="POST" action="/Pra5/editsave">    
+   <%--    <input id="id" name="id" value="${id}" type="hidden" /> --%>
+       
+        <table >    
+        <tr>  
+        <td></td>    
+         <td><form:hidden  path="id" /></td>  
+         </tr> 
+         <tr>    
+          <td>Name : </td>   
+          <td><form:input path="name"  /></td>  
+         </tr>    
+         <tr>    
+          <td>Email :</td>    
+          <td><form:input path="email" /></td>  
+         </tr>   
+         <tr>
+         <td>Gender : </td>
+         <td><form:radiobutton path="gender" value="Male"/>Male&nbsp;<form:radiobutton path="gender" value="Female"/>Female</td>
+         </tr>
+         <tr>
+		 <td>Hobbies:</td>
+		 <td>
+			<c:forEach items="${listhobb}" var="hobby">
+				<form:checkbox path="hobbies"  value="${hobby.sportname}"/>${hobby.sportname}
+			</c:forEach>				    
+		</td>
+		 </tr>
+		 <tr>
+			<td>Address: </td>
+			<td><form:textarea path="address" /></td>
+		</tr>
+		 
+         <tr>    
+          <td>City :</td>    
+          <td><form:select path="city">  
+        <form:option value="AHMEDABAD" label="AHMEDABAD"/>  
+        <form:option value="RAJKOT" label="RAJKOT"/>  
+        <form:option value="VADODARA" label="VADODARA"/>  
+        <form:option value="MAHESANA" label="MAHESANA"/>  
+        </form:select> </td>  
+         </tr>   
+         <tr>    
+          <td> </td>    
+          <td><input type="submit" value="editsave" />
+          <input type="reset" value="Reset">
+          </td>    
+         </tr>    
+        </table>  
+       </form:form>    
+       
+       <------------------- index ------------------->
+       <a href="studform">Add Student</a>  
+<a href="viewstudent">View Students</a> 
