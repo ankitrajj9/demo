@@ -1,0 +1,361 @@
+package com.ankit.controller;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.ankit.service.StudentService;
+import com.ankit.entity.Hobby;
+import com.ankit.entity.Skill;
+import com.ankit.entity.Student;
+
+@Controller
+public class StudentController {
+	@Autowired
+	private StudentService studentService;
+
+	@RequestMapping(value = "/studform", method = RequestMethod.GET)
+	public String addEmployee(Model m) {
+		Student s = new Student();
+		
+		List<Hobby> hobbies = new ArrayList<Hobby>();
+		Hobby h = new Hobby();
+		h.setSportname("Basket ball");
+		hobbies.add(new Hobby("Cricket"));
+		hobbies.add(new Hobby("Football"));
+		hobbies.add(new Hobby("Volleyball"));
+		hobbies.add(h);
+		s.setHobbies(hobbies);
+		
+		List<Skill> skills = new ArrayList<Skill>();
+		skills.add(new Skill("Java"));
+		skills.add(new Skill("C++"));
+		skills.add(new Skill("PHP"));
+		skills.add(new Skill("Android"));
+		s.setSkills(skills);
+		
+		m.addAttribute("listskills", skills);
+		m.addAttribute("listhobb", hobbies);
+		m.addAttribute("command", s);
+		// m.addAttribute("command", new Hobby());
+		return "studform";
+	}
+
+	@RequestMapping(value = "/save", method = RequestMethod.POST)
+	public String saveEmployee(@ModelAttribute("stud") Student student) {
+
+		studentService.addStudent(student);
+		return "redirect:/viewstudent";
+	}
+
+	@RequestMapping(value = "/viewstudent")
+	public String viewemp(Model m) {
+		List<Student> stu = studentService.listStudents();
+		/*for(Student s:stu)
+		{
+			List<Skill> skill=studentService.getSkills(s.getId());
+			s.setSkills(skill);
+		}*/
+		m.addAttribute("list", stu);
+		return "viewstudent";
+	}
+
+	@RequestMapping(value = "/deletestud/{id}", method = RequestMethod.GET)
+	public String remove(@PathVariable("id") int id) {
+		studentService.deleteStudent(id);
+		return "redirect:/viewstudent";
+	}
+
+	@RequestMapping(value = "/editstud/{id}")
+	public String editEmployee(@PathVariable int id, Model m) {
+		Student s = studentService.getStudent(id);
+		List<Hobby> lq = new ArrayList<Hobby>();
+		Hobby h = new Hobby();
+		h.setSportname("Basket ball");
+		lq.add(new Hobby("Cricket"));
+		lq.add(new Hobby("Football"));
+		lq.add(new Hobby("Volleyball"));
+		lq.add(h);
+		/*System.out.println("PRINTING LIST OF HOBBIES");*/
+		
+		List<Skill> lp = new ArrayList<Skill>();
+		lp.add(new Skill("Java"));
+		lp.add(new Skill("C++"));
+		lp.add(new Skill("PHP"));
+		lp.add(new Skill("Android"));
+
+		List<Hobby> l = studentService.getHobbies(id);
+		List<Skill> sm = studentService.getSkills(id);
+		
+		s.setHobbies(l);
+		s.setSkills(sm);
+		
+
+		
+		m.addAttribute("lr", lq);
+		m.addAttribute("lm",lp);
+	
+		m.addAttribute("command", s);
+		return "studeditform";
+	}
+
+	@RequestMapping(value = "/editsave", method = RequestMethod.POST)
+	public String editsave(@ModelAttribute("stud") Student student) {
+		studentService.updateStudent(student);
+		return "redirect:/viewstudent";
+	}
+
+	@RequestMapping(value = "/test")
+	public String test(@ModelAttribute Student s, Model m) {
+		List<Student> l = studentService.listStudents();
+		m.addAttribute("lis", l);
+		return "testfile";
+	}
+	@RequestMapping(value="login", method=RequestMethod.GET)
+	public String login(Model m){
+		Student s = new Student();
+		
+		m.addAttribute("command", s);
+		return "login";
+	}
+	@RequestMapping(value="login", method=RequestMethod.POST)
+	public String loginVerify(@RequestParam("email")String email,Model m,HttpServletRequest request){
+		
+		//String e = student.getEmail();
+		List<Student> s =studentService.findStudent(email);
+		
+		HttpSession httpSession = request.getSession();
+		httpSession.setAttribute("student", s);
+		m.addAttribute("studdetail", s);
+		return "view2";
+	}
+	@RequestMapping(value = "/logout")
+    public String logout(HttpServletRequest request) {
+        System.out.println("logout() success");
+        HttpSession httpSession = request.getSession();
+        httpSession.invalidate();
+        return "redirect:login";
+    }
+	
+
+}
+
+
+_________________________________________
+
+package com.ankit.dao;
+
+import java.util.List;
+
+import com.ankit.entity.Hobby;
+import com.ankit.entity.Skill;
+import com.ankit.entity.Student;
+
+public interface StudentDAO {
+	public void addStudent(Student student);
+	public void updateStudent(Student student);
+	public List<Student> listStudents();
+	public Student getStudent(int id);
+	public void deleteStudent(int id);
+	public List<Hobby> getHobbies(int id);
+	public List<Skill> getSkills(int id);
+	public List<Student> findStudent(String email);
+	
+
+}
+_____________________________
+package com.ankit.dao;
+
+import java.util.List;
+
+import com.ankit.entity.Hobby;
+import com.ankit.entity.Skill;
+import com.ankit.entity.Student;
+
+public interface StudentDAO {
+	public void addStudent(Student student);
+	public void updateStudent(Student student);
+	public List<Student> listStudents();
+	public Student getStudent(int id);
+	public void deleteStudent(int id);
+	public List<Hobby> getHobbies(int id);
+	public List<Skill> getSkills(int id);
+	public List<Student> findStudent(String email);
+	
+
+}
+_________________________________________package com.ankit.dao;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.jasper.tagplugins.jstl.core.ForEach;
+import org.hibernate.Query;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.ankit.entity.Hobby;
+import com.ankit.entity.Skill;
+import com.ankit.entity.Student;
+
+@Repository
+public class StudentDAOImpl implements StudentDAO {
+	@Autowired
+	private SessionFactory sessionfactory;
+
+	@Override
+	public void addStudent(Student student) {
+		// TODO Auto-generated method stub
+		sessionfactory.getCurrentSession().saveOrUpdate(student);
+
+	}
+
+	@Override
+	public void updateStudent(Student student) {
+		// TODO Auto-generated method stub
+		sessionfactory.getCurrentSession().update(student);
+
+	}
+
+	@Override
+	public List<Student> listStudents() {
+		// TODO Auto-generated method stub
+		return (List<Student>) sessionfactory.getCurrentSession().createQuery("from Student").list();
+	}
+
+	@Override
+	public Student getStudent(int id) {
+		// TODO Auto-generated method stub
+
+		return (Student) sessionfactory.getCurrentSession().get(Student.class, id);
+	}
+
+	@Override
+	public void deleteStudent(int id) {
+		// TODO Auto-generated method stub
+		Student student = getStudent(id);
+
+		sessionfactory.getCurrentSession().delete(student);
+		Query q = sessionfactory.getCurrentSession().createQuery(" delete from Hobby where student =:n");
+		q.setParameter("n", student);
+		Query q1 = sessionfactory.getCurrentSession().createQuery(" delete from Skill where student =:p");
+		q1.setParameter("p", student);
+
+	}
+
+	@Override
+	public List<Hobby> getHobbies(int id) {
+		// TODO Auto-generated method stub
+		Student student = getStudent(id);
+		Query q = sessionfactory.getCurrentSession().createQuery("select sportname from Hobby where student=:n");
+		q.setParameter("n", student);
+		List<Hobby> i = q.list();
+		return i;
+		// return (List<Hobby>)
+		// sessionfactory.getCurrentSession().createQuery("from Hobby where
+		// student_id=:n");
+
+	}
+
+	@Override
+	public List<Skill> getSkills(int id) {
+		// TODO Auto-generated method stub
+		Student student = getStudent(id);
+	  //  Map<Object, Object> j=new HashMap<>();
+	  //  j.put("n", student);
+		Query q = sessionfactory.getCurrentSession().createQuery("select skillname from Skill where student=:n");
+		//q.setProperties(j);
+		q.setParameter("n", student);
+		List<Skill> i = q.list();
+		/*for(Skill s:i)
+			System.out.println(s.getSkillname());*/
+		return i;
+	}
+
+	@Override
+	public List<Student> findStudent(String email) {
+		// TODO Auto-generated method stub
+		Query q = sessionfactory.getCurrentSession().createQuery("from Student where email=:e");
+		q.setParameter("e",email);
+		List<Student> s = q.list();
+		return s;
+	}
+
+}
+_______________________________________
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
+<h1>Log in</h1>
+<form:form method="post" action="login">
+	<table>
+	<tr>
+		<td>Email :</td>
+		<td><form:input path="email" /></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><input type="submit" value="Login" /></td>
+	</tr>
+	</table>
+	</form:form>
+  ___________________________________________
+  
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
+<h1>Students Details</h1>
+<table border="2" width="70%" cellpadding="2">
+	<tr>
+		<th>Id</th>
+		<th>Name</th>
+		<th>Email</th>
+		<th>Gender</th>
+		<th>Hobbies</th>
+		<th>Skills</th>
+		<th>Address</th>
+		<th>City</th>
+		<th>Edit</th>
+		<th>Delete</th>
+	</tr>
+	<c:forEach var="stud" items="${studdetail}">
+		<tr>
+			<td>${stud.id}</td>
+			<td>${stud.name}</td>
+			<td>${stud.email}</td>
+			<td>${stud.gender}</td>
+
+			<td><c:forEach var="h" items="${stud.hobbies}">
+     ${h.sportname}    
+    </c:forEach></td>
+
+			<td><c:forEach var="s" items="${stud.skills}">
+    ${s.skillname}
+    </c:forEach></td>
+			<%-- <td>${stud.hobbies}</td> --%>
+
+			<td>${stud.address}</td>
+			<td>${stud.city}</td>
+			<td><a href="editstud/${stud.id}">Edit</a></td>
+			<td><a href="deletestud/${stud.id}">Delete</a></td>
+		</tr>
+	</c:forEach>
+</table>
+<br />
+<a href="logout">Logout</a>
+<!-- <a href="studform">Add New Student</a>
+<a href="test">Test data</a> -->
