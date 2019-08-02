@@ -1,0 +1,1813 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<%@page import="sun.tools.jar.resources.jar"%>
+<%@page import="java.util.Date"%>
+<%@page import="java.text.DateFormat"%>
+<%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@taglib prefix="abc" uri="/WEB-INF/abcdecriptor.tld"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<jsp:include page="../includes/head.jsp"></jsp:include>
+<title>Edit Details</title>
+<spring:message code="Hr_status" var="hrStatus"></spring:message>
+<spring:message code="Hr_Location" var="hrLocation"></spring:message>
+<spring:message code="Hr_Jobs" var="hrJobs"></spring:message>
+<spring:message code="Hr_business" var="hrBusiness"></spring:message>
+<spring:message code="Hr_department" var="hrDepartment"></spring:message>
+<spring:message code="Hr_function" var="hrFunction"></spring:message>
+<spring:message code="Emp_bloodGroup" var="bloodGrp"></spring:message>
+<spring:message code="Emp_religion" var="religion"></spring:message>
+<spring:message code="Emp_language" var="language"></spring:message>
+<spring:message code="Emp_education" var="educate"></spring:message>
+<spring:message code="Emp_qualification" var="empQualification"></spring:message>
+
+
+<script type="text/javascript">
+var counter='${counter}';
+var counter1='${counter1}';
+var counter2='${counter2}';
+var counter3='${counter3}';
+var counter4='${counter4}';
+var id = '${details.id}';
+var myOptions='${language}'.split(",");
+var education='${educate}'.split(",");
+var qualification='${empQualification}'.split(",");
+var d1="";
+var d2="";
+var split="";
+var split1="";
+// var totalDays=0;
+var countdays='${details.totalDaysExp}';
+var timestamp=0;
+var timestamp1=0;
+var months=30;
+var alphabets=/^[a-zA-Z ]{0,100}$/;
+var characterReg = /^([a-zA-Z0-9]{0,8})$/; 
+// var addReg=  /^([a-zA-Z0-9]{0,500})$/;
+var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+var panValid=/^([a-zA-Z]){5}([0-9]){4}([a-zA-Z]){1}?$/; 
+var onlyDigits= /^[0-9]{1,11}$/;
+var delDays=0;
+var documents="";
+
+function validation(){
+	var identity="";
+	var rowIndex=0;
+	var flag=true;
+	
+	if(counter4<1){
+		alert("Language Required");
+	    flag=false;
+	}
+	
+	if(counter1<2){
+		alert("Family Details Required (atleast two)");
+	    flag=false;
+	}
+	
+	if(counter3<1){
+		alert("Education Details Required");
+	    flag=false;
+	}
+	
+	if(counter2<2){
+		alert("Reference Details Compulsory from any of previous employers and from which compulsory one reference from previous employer's HR Department");
+	    flag=false;
+	}
+			
+	$(".form-control").each(function(index){
+
+		identity=$(this).attr('id');
+		if(typeof(identity) != "undefined" && identity.indexOf('_')!=-1){
+//	 		identity=identity.split('_')[0]+'_'+identity.split('_')[1];
+		    rowIndex=identity.split('_')[1];
+		}else{
+		identity=$(this).attr('id');
+			
+		}
+		switch (identity) {
+		    case "txtEmpName":
+		    case "fathersName":	
+		    case "lastName":	
+		    case "Dob":
+		    	
+		    	if($(this).val()==""){
+					$("#"+$(this).attr('id')).focus();
+					$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+				}else{
+					$("#"+$(this).attr('id')+"_span").text("");
+				}
+		    	if($(this).attr('id')=='txtEmpName' && !alphabets.test($(this).val())){
+					$("#"+$(this).attr('id')).focus();
+					$("#txtEmpName_span").text("Allows max. 100 alphabets");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+				}
+		    		
+		    	if($(this).attr('id')=='fathersName' && !alphabets.test($(this).val())){
+					$("#"+$(this).attr('id')).focus();
+					$("#fathersName_span").text("Allows max. 100 alphabets");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+				}	
+		    	if($(this).attr('id')=='lastName' && !alphabets.test($(this).val())){
+					$("#"+$(this).attr('id')).focus();
+					$("#lastName_span").text("Allows max. 100 alphabets");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+				}	
+		    	
+		     	break;
+		   
+		    case "language_"+rowIndex:
+		    case "education_"+rowIndex:
+		    case "qualify_"+rowIndex:	
+//		         case "esicNumber":
+//		         case "uanNumber":
+//		         case "licenseNo":
+		              	
+		    	if($(this).attr('id')=='language_'+rowIndex && $(this).val()=="Select"){
+					$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+	        	}
+	        	else if($(this).attr('id')=='education_'+rowIndex &&  $(this).val()=="Select"){
+					$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+					$(document).find('.in').removeClass("in");
+					$("#collapse3").addClass("in").height("100%");
+					flag=false;
+	        	}
+	        	else if($(this).attr('id')=='qualify_'+rowIndex && $(this).val()=="Select"){
+					$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+					$(document).find('.in').removeClass("in");
+					$("#collapse3").addClass("in").height("100%");
+					flag=false;
+	        	}else{
+					$("#"+$(this).attr('id')+"_span").text("");
+
+	        	}	
+		        	
+				break;
+		     	
+		    case "mobile":
+			case "alterMobile":	
+			
+				if($(this).val()==""){
+					$("#"+$(this).attr('id')).focus();
+					$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+				}else{
+					$("#"+$(this).attr('id')+"_span").text("");
+				}
+				
+				if($(this).attr('id')=='mobile' && $(this).val().length>0 && !onlyDigits.test($(this).val()) || $(this).val().length>11){
+					$("#"+$(this).attr('id')).focus();
+					$("#"+$(this).attr('id')+"_span").text("Allows max. 11 digits");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+				}
+				if($(this).attr('id')=='alterMobile' && $(this).val().length>0 && !onlyDigits.test($(this).val()) || $(this).val().length>11){
+					$("#"+$(this).attr('id')).focus();
+					$("#"+$(this).attr('id')+"_span").text("Allows max. 11 digits");
+					$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+					flag=false;
+				}
+				
+				break;
+
+	        case "permanentAdd":
+	        case "tempAdd":
+	        	
+	        	   	
+	        	if($(this).val()==""){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+	        		flag=false;
+				}else{
+					$("#"+$(this).attr('id')+"_span").text("");
+				}
+	        	if($(this).val().length>500){
+	        		
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 500 characters");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+	        		flag=false;
+				}
+	        	        	
+	        	break;
+	        	
+	        case "panNo":
+	        	if($(this).val()==""){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+	        		flag=false;
+				}else{
+					$("#"+$(this).attr('id')+"_span").text("");
+				}
+	        	if(!panValid.test($(this).val()) && $(this).val().length>0){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Must be contain 5 Alphabet , 4 numeric , 1 Alphabet");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse1").addClass("in").height("100%");
+	        		flag=false;
+	        	}
+	        	        	
+	        	break;
+			         	
+	     
+	        case "fDob_"+rowIndex:
+	        case "fRelation_"+rowIndex:	
+	        case "fOccupation_"+rowIndex: 
+	        case "txtMemberName_"+rowIndex:
+	        case "fContct_"+rowIndex:	         	   
+	        	
+	         	if($(this).val()==""){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse2").addClass("in").height("100%");
+	        		flag=false;
+			    }else{
+			    	$("#"+$(this).attr('id')+"_span").text("");
+			    } 
+	         	
+			    /* if($(this).attr('id')=='txtMemberName_'+rowIndex && $(this).val()==""){
+			    	$("#"+$(this).attr('id')).focus();
+			    	$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+			    	flag=false;
+			    }else{
+			    	$("#"+$(this).attr('id')+"_span").text("");
+			    } */
+			 	    
+	            if($(this).attr('id')=='txtMemberName_'+rowIndex && $(this).val().length>0 && !alphabets.test($(this).val())){
+	    		$("#"+$(this).attr('id')+"_span").text("Allows max. 100 alphabets");
+	    		$(document).find('.in').removeClass("in");
+				$("#collapse2").addClass("in").height("100%");   
+	    		flag=false;
+	            }
+	        	    
+			     if($(this).attr('id')=='fContct_'+rowIndex && $(this).val().length>0 && !onlyDigits.test($(this).val())){
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 11 digits");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse2").addClass("in").height("100%");
+	        		flag=false;
+			     }
+	        	
+	        	if($(this).attr('id')=='fRelation_'+rowIndex && $(this).val().length>0 && !(/^[a-zA-Z ]{0,20}$/.test($(this).val()))){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 20 characters");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse2").addClass("in").height("100%");
+	        		flag=false;
+	        	} 
+	        	if($(this).attr('id')=='fOccupation_'+rowIndex && $(this).val().length>0 && !(/^[a-zA-Z ]{0,30}$/.test($(this).val()))){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 30 characters");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse2").addClass("in").height("100%");
+	        		flag=false;
+	        	} 
+	                	
+	    	break;
+
+	        case "univers_"+rowIndex:
+	        case "passYear_"+rowIndex:
+	        case "subj_"+rowIndex:
+	        
+	        	if($(this).val()==""){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse3").addClass("in").height("100%");
+	        		flag=false;
+			   }else{
+				   $("#"+$(this).attr('id')+"_span").text("");
+			   }
+			   
+	        	if($(this).attr('id')=='univers_'+rowIndex &&  $(this).val().length>0 && !alphabets.test($(this).val())){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 100 alphabets");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse3").addClass("in").height("100%");
+	        		flag=false;
+	        	} 
+	        	if($(this).attr('id')=='subj_'+rowIndex && $(this).val().length>0  && !(/^[a-zA-Z ]{0,50}$/.test($(this).val()))){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 50 alphabets");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse3").addClass("in").height("100%");
+	        		flag=false;
+	        	}       	
+	        	
+	        	break;
+			
+	        case "ctc_"+rowIndex:
+	        	if($(this).val().length>0 && !(/^[0-9]{1,15}$/.test($(this).val()))){
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 15 digits");
+	        		$(document).find('.in').removeClass("in");
+					$("#collapse4").addClass("in").height("100%");
+	        		flag=false;
+	        	}else{
+	        		$("#"+$(this).attr('id')+"_span").text("");
+	        	}
+	        	
+	        	break;	
+	        		        	
+	        case "name_"+rowIndex:
+	        case "designation_"+rowIndex:	
+	        case "comp_"+rowIndex:
+	        case "address_"+rowIndex:
+	        case "contNo_"+rowIndex:	
+	        	
+	        	if($(this).val()==""){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+	        		$(document).find('.in').removeClass("in");
+	        		$("#collapse5").addClass("in").height('100%');
+	        		flag=false;
+			   }else{
+				   $("#"+$(this).attr('id')+"_span").text("");
+			   }
+	        	if($(this).attr('id')=='name_'+rowIndex && $(this).val().length>0 && !alphabets.test($(this).val())){
+	        
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 100 alphabets");
+	        		$(document).find('.in').removeClass("in");
+	        		$("#collapse5").addClass("in").height('100%');
+	        		flag=false;
+	        	}
+	        	if($(this).attr('id')=='contNo_'+rowIndex && $(this).val().length>0 && !onlyDigits.test($(this).val())){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 11 digits");
+	        		$(document).find('.in').removeClass("in");
+	        		$("#collapse5").addClass("in").height('100%');
+	        		flag=false;
+	        	}
+	        	if($(this).attr('id')=='address_'+rowIndex && $(this).val().length>0 && $(this).val().length>500){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 500 characters");
+	        		$(document).find('.in').removeClass("in");
+	        		$("#collapse5").addClass("in").height('100%');
+	        		flag=false;
+				}
+	        	
+	        	if($(this).attr('id')=='designation_'+rowIndex && !(/^[a-zA-Z ]{0,50}$/.test($(this).val()))){
+	        		$("#"+$(this).attr('id')).focus();
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 50 alphabets");
+	        		$(document).find('.in').removeClass("in");
+	        		$("#collapse5").addClass("in").height('100%');
+	        		flag=false;
+	        	}
+	        	
+	        	break;
+	        	
+	        case "business":
+	        case "department":
+	        case "location":
+	        case "function":
+	        case "designation":
+	        case "empStatus": 	
+	               	
+	        	if($(this).val()==""){
+	        		$("#"+$(this).attr('id')+"_span").text("Please enter the details");
+	        		$(document).find('.in').removeClass("in");
+	        		$("#collapse6").addClass("in").height('100%');
+	        		flag=false;
+	        	}else{
+	        		$("#"+$(this).attr('id')+"_span").text("");
+	        	}
+	        	        		        		        	
+	        	break;
+	        
+	        case "EmpCtc":
+	  
+	        	if($(this).attr('id')=='EmpCtc' && $(this).val().length>0 && !(/^[0-9]{1,15}$/.test($(this).val()))){
+	        		$("#"+$(this).attr('id')+"_span").text("Allows max. 15 digits");
+	        		$(document).find('.in').removeClass("in");
+	        		$("#collapse6").addClass("in").height('100%');
+	        		flag=false;
+	        	}else{
+	        		$("#"+$(this).attr('id')+"_span").text("");
+	        	}
+	        	 
+
+	        	break;
+			}
+	    
+
+//	 	}
+		
+		});
+     return flag;  
+
+}
+
+
+function submit(){
+	//$("#updateData").attr('disabled','disabled');
+	var status = validation();
+	
+
+	var options= {
+	success:function(){
+		alert("Joining form updated successfully");
+		window.location.href="<%=request.getContextPath()%>/success";
+	},
+	error:function(){
+		alert("Sorry can't update the form");
+	}
+};
+	if(status){
+		    $("#updateData").attr('disabled','disabled');
+		    $("#totalDaysCount").val(countdays);
+		    $("#yearsOfExperience").val($(".totalYearsOfExperience").text());
+		    $("#empDetlId").val(id);
+		    $("#eduDetlCount").val(counter3);
+		    $("#refDetails").val(counter2);
+		    $("#familyCount").val(counter1);
+		    $("#expCount").val(counter);
+		    $("#laguageCount").val(counter4);
+		    $("#documents").val(documents);
+		    $("#employeeDetails").ajaxForm(options).submit();
+// 		    document.getElementById("employeeDetails").submit();	
+	}else {
+		$("#updateData").attr('enabled','enabled');
+
+	}
+	
+  
+    
+ // 	$("#employeeDetails").ajaxForm(options).submit();
+  
+//      document.getElementById("employeeDetails").submit();
+}
+
+$(document).ready(function(){
+$('input:checkbox[id^="recCheck_"]').on('click',function(){
+documents+=$(this).closest('tr').find('.text-center').text()+",";
+
+});
+
+$(document).on('click','.fa-plus-circle',function(){
+
+if($(this).closest('table').attr('id')=='addFamily'){
+	if(counter1<=4){
+		$("#addFamily > tbody").append("<tr><td><input type='text' id='txtMemberName_"+counter1+"' name='txtMemberName_"+counter1+"' class='form-control'><span style='color:red;' id='txtMemberName_"+counter1+"_span'></span></td>"+ 
+                "<td><div id='nomineeDob' class='date form_datetime2 calendar-div'>"+
+                   "<input size='16' readonly name='fDob_"+counter1+"' id='fDob_"+counter1+"' class='form-control' type='text'><span style='color:red;' id='fDob_"+counter1+"_span'></span>"+ 
+                    "<span class='add-on'><i class='fa fa-calendar'></i></span></div></td>"+
+				       "<td><input type='text' readonly id='fAge_"+counter1+"' name='fAge_"+counter1+"' class='form-control'></td>"+
+			            "<td><input type='text' id='fRelation_"+counter1+"' name='fRelation_"+counter1+"' class='form-control'><span style='color:red;' id='fRelation_"+counter1+"_span'></span></td>"+
+			           "<td><input type='text' id='fOccupation_"+counter1+"' name='fOccupation_"+counter1+"' class='form-control'><span style='color:red;' id='fOccupation_"+counter1+"_span'></span></td>"+
+			            "<td><input type='text' id='fAc_"+counter1+"' name='fAc_"+counter1+"' class='form-control'><span style='color:red;' id='fAc_"+counter1+"_span'></span></td>"+
+			            "<td><input type='text' id='fContct_"+counter1+"' name='fContct_"+counter1+"' class='form-control'><span style='color:red;' id='fContct_"+counter1+"_span'></span></td>"+
+			            "<td><input type='text' id='fShare_"+counter1+"' name='fShare_"+counter1+"'  class='form-control'><span style='color:red;' id='fShare_"+counter1+"_span'></span></td>"+ 
+			           "<td class='text-center'>"+
+			            "</td></tr>");
+		counter1++;
+	}											            	
+
+}
+
+if($(this).closest('table').attr('id')=='educationDet'){
+	if(counter3<=4){	
+		$("#educationDet > tbody").append("<tr><td><select name='qualify_"+counter3+"' id='qualify_"+counter3+"' class='form-control'></select><span style='color:red;' id='qualify_"+counter3+"_span'></span></td>"+
+	            "<td><select name='education_"+counter3+"' id='education_"+counter3+"'  class='form-control'/><span style='color:red;' id='education_"+counter3+"_span'></span></td>"+
+	            "<td><input type='text' name='univers_"+counter3+"' id='univers_"+counter3+"' class='form-control'><span style='color:red;' id='univers_"+counter3+"_span'></span></td>"+
+	            "<td><input type='text' name='passYear_"+counter3+"' id='passYear_"+counter3+"' class='form-control'><span style='color:red;' id='passYear_"+counter3+"_span'></span></td>"+
+	            "<td><input type='text' name='subj_"+counter3+"' id='subj_"+counter3+"' class='form-control'><span style='color:red;' id='subj_"+counter3+"_span'></span></td>"+
+	            "<td class='text-center'></td>"+"</tr>");
+
+		var p = new Option("Select","Select");
+		$(p).html("Select");
+		$('#qualify_'+counter3).append(p);
+		
+	 $.each(qualification, function(val, text) {
+
+	 		$('#qualify_'+counter3).append(
+	      	        $('<option></option>').html(text)
+	       	    );
+       	});	
+
+	    var o = new Option("Select","Select");
+		$(o).html("Select");
+		$('#education_'+counter3).append(o);
+
+	 
+	$.each(education, function(val, text) {
+		 
+		$('#education_'+counter3).append(
+	        $('<option></option>').html(text)
+	    );
+	});
+	counter3++;
+	}
+	
+		
+}
+
+if($(this).closest('table').attr('id')=='expDet'){
+	if(counter<=4){
+		$("#expDet > tbody").append("<tr id='loopOnExp_"+counter+"'><td><input type='text'  name='organization_"+counter+"' class='form-control' id='organization_"+counter+"'></td>"+
+			    "<td><div id='datetimepicker1_"+counter+"' class='date form_datetime2 calendar-div'>"
+			    +"<input size='16' name='fromExp_"+counter+"' readonly class='form-control' placeholder='From' id='fromExp_"+counter+"' type='text'>"+
+						"<span class='add-on'><i class='fa fa-calendar'></i></span>"+
+					"</div>"+	
+				"</td>"+
+			   "<td><div id='datetimepicker2_"+counter+"' class='date form_datetime2 calendar-div'>"+
+				    	"<input size='16' name='toExp_"+counter+"'   readonly class='form-control' placeholder='To' id='toExp_"+counter+"' type='text'>"+
+						"<span class='add-on'><i class='fa fa-calendar'></i></span>"+
+					"</div></td>"+
+			    "<td><input type='text' name='position_"+counter+"' class='form-control' id='position_"+counter+"'></td>"+
+			    "<td><input type='text' name='ctc_"+counter+"' class='form-control' id='ctc_"+counter+"'>"+
+                "<span style='color:red;' id='ctc_"+counter+"_span'></span></td>"+
+			    "<td><input type='text' name='superior_"+counter+"' class='form-control' id='superior_"+counter+"'></td>"+
+			    "<td><input type='text' name='reasonLeaving_"+counter+"' class='form-control' id='reasonLeaving_"+counter+"'></td>"+
+			    "<td class='text-center'></td>"+									   
+			    "</tr>");
+		counter++;
+	}
+
+}
+
+if($(this).closest('table').attr('id')=='languageId'){
+	if(counter4<=3){                         
+		
+    $("#languageId > tbody").append("<tr><td><select class='form-control' name='language_"+counter4+"' id='language_"+counter4+"'></select><span style='color:red;' id='language_"+counter4+"_span'></span></td>"+
+    		"<td><div class='checkbox checkbox-primary'>"+
+					"<input id='readCheck' class='styled' type='checkbox' value='read' name='langAction_"+counter4+"'>"+
+					"<label for='readCheck_"+counter4+"'></label>"+
+				"</div></td>"+
+            "<td><div class='checkbox checkbox-primary'>"+
+					"<input id='writeCheck' class='styled' type='checkbox' value='write' name='langAction_"+counter4+"'>"+
+					"<label for='writeCheck_"+counter4+"'></label>"+
+				"</div></td>"+
+            "<td><div class='checkbox checkbox-primary'>"+
+					"<input id='speakCheck' class='styled' type='checkbox' value='speak'  name='langAction_"+counter4+"'>"+
+					"<label for='speakCheck_"+counter4+"'></label>"+"</div></td>"+
+            "<td class='text-center'></td>"+
+         "</tr>");
+	
+
+	var o = new Option("Select","Select");
+	$(o).html("Select");
+	$("#language_"+counter4).append(o);
+        
+    $.each(myOptions, function(val, text) {
+   	 
+		$('#language_'+counter4).append(
+	        $('<option></option>').html(text)
+	    );
+	});
+    counter4++;
+	}	    
+
+}
+
+if($(this).closest('table').attr('id')=='DetailsId'){
+	if(counter2<=1){
+		 $("#DetailsId > tbody").append("<tr><td><input type='text' name='name_"+counter2+"' id='name_"+counter2+"' class='form-control'><span style='color:red;' id='name_"+counter2+"_span'></span></td>"+
+		            "<td><input type='text' name='designation_"+counter2+"' id='designation_"+counter2+"' class='form-control'><span style='color:red;' id='designation_"+counter2+"_span'></span></td>"+
+		            "<td><input type='text' name='comp_"+counter2+"' id='comp_"+counter2+"' class='form-control'><span style='color:red;' id='comp_"+counter2+"_span'></span></td>"+
+		            "<td><input type='text' name='address_"+counter2+"' id='address_"+counter2+"' class='form-control'><span style='color:red;' id='address_"+counter2+"_span'></span></td>"+
+		            "<td><input type='text' name='contNo_"+counter2+"' id='contNo_"+counter2+"' class='form-control'><span style='color:red;' id='contNo_"+counter2+"_span'></span></td>"+
+		            "<td class='text-center'></td>"+
+		             "</tr>");		
+		 counter2++;
+	}	
+	   
+
+}
+});
+
+function reShuffle(tableId){
+
+	if(tableId=='expDet'){
+	counter=(counter-1);
+
+	$('#'+tableId +'>tbody'+ '>tr').each(function(index){
+
+	$(this).attr('id','loopOnExp_'+index);
+
+	$(this).find('[id^="organization_"]').attr({
+		id:$(this).find('[id^="organization_"]').attr('id').replace($(this).find('[id^="organization_"]').attr('id'),'organization_'+index),
+		name:$(this).find('[name^="organization_"]').attr('name').replace($(this).find('[name^="organization_"]').attr('name'),'organization_'+index)
+	});
+
+	$(this).find('div[id^="datetimepicker1_"]').attr({
+		id:$(this).find('div[id^="datetimepicker1_"]').attr('id').replace($(this).find('div[id^="datetimepicker1_"]').attr('id'),'datetimepicker1_'+index)
+	});
+
+	$(this).find('div[id^="datetimepicker2_"]').attr({
+		id:$(this).find('div[id^="datetimepicker2_"]').attr('id').replace($(this).find('div[id^="datetimepicker2_"]').attr('id'),'datetimepicker2_'+index)
+	});
+
+	$(this).find('[id^="fromExp_"]').attr({
+		id:$(this).find('[id^="fromExp_"]').attr('id').replace($(this).find('[id^="fromExp_"]').attr('id'),'fromExp_'+index),
+		name:$(this).find('[name^="fromExp_"]').attr('name').replace($(this).find('[name^="fromExp_"]').attr('name'),'fromExp_'+index)
+	});
+	$(this).find('[id^="toExp_"]').attr({
+		id:$(this).find('[id^="toExp_"]').attr('id').replace($(this).find('[id^="toExp_"]').attr('id'),'toExp_'+index),
+		name:$(this).find('[name^="toExp_"]').attr('name').replace($(this).find('[name^="toExp_"]').attr('name'),'toExp_'+index)	
+		});     
+
+	$(this).find('[id^="position_"]').attr({
+		id:$(this).find('[id^="position_"]').attr('id').replace($(this).find('[id^="position_"]').attr('id'),'position_'+index),
+		name:$(this).find('[name^="position_"]').attr('name').replace($(this).find('[name^="position_"]').attr('name'),'position_'+index)
+		
+	});
+	$(this).find('[id^="ctc_"]').not('[id$="_span"]').attr({
+		id:$(this).find('[id^="ctc_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="ctc_"]').not('[id$="_span"]').attr('id'),'ctc_'+index),
+		name:$(this).find('[name^="ctc_"]').not('[id$="_span"]').attr('name').replace($(this).find('[name^="ctc_"]').not('[id$="_span"]').attr('name'),'ctc_'+index)
+	});
+	$(this).find('[id^="ctc_"][id$="_span"]').attr('id','ctc_'+index+'_span');
+
+			
+	$(this).find('[id^="superior_"]').attr({
+		id:$(this).find('[id^="superior_"]').attr('id').replace($(this).find('[id^="superior_"]').attr('id'),'superior_'+index),
+		name:$(this).find('[name^="superior_"]').attr('name').replace($(this).find('[name^="superior_"]').attr('name'),'superior_'+index)
+	});
+	$(this).find('[id^="reasonLeaving_"]').attr({
+		id:$(this).find('[id^="reasonLeaving_"]').attr('id').replace($(this).find('[id^="reasonLeaving_"]').attr('id'),'reasonLeaving_'+index),
+		name:$(this).find('[name^="reasonLeaving_"]').attr('name').replace($(this).find('[name^="reasonLeaving_"]').attr('name'),'reasonLeaving_'+index)
+		
+	});
+
+	});
+
+	}
+
+	if(tableId=='addFamily'){
+	counter1=(counter1-1);
+
+	$('#'+tableId +'>tbody'+ '>tr').each(function(index){
+
+			$(this).find('[id^="txtMemberName_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="txtMemberName_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="txtMemberName_"]').not('[id$="_span"]').attr('id'),'txtMemberName_'+index),	
+			    name:$(this).find('[name^="txtMemberName_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="txtMemberName_"]').not('[name$="_span"]').attr('name'),'txtMemberName_'+index)
+			});
+			$(this).find('[id^="txtMemberName_"][id$="_span"]').attr('id','txtMemberName_'+index+'_span');		
+			
+			$(this).find('[id^="fDob_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="fDob_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="fDob_"]').not('[id$="_span"]').attr('id'),'fDob_'+index),
+				name:$(this).find('[name^="fDob_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="fDob_"]').not('[id$="_span"]').attr('name'),'fDob_'+index)
+			});
+			$(this).find('[id^="fDob_"][id$="_span"]').attr('id','fDob_'+index+'_span');
+			
+			$(this).find('[id^="fAge_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="fAge_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="fAge_"]').not('[id$="_span"]').attr('id'),'fAge_'+index),
+				name:$(this).find('[name^="fAge_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="fAge_"]').not('[name$="_span"]').attr('name'),'fAge_'+index)
+			});
+			
+			$(this).find('[id^="fRelation_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="fRelation_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="fRelation_"]').not('[id$="_span"]').attr('id'),'fRelation_'+index),
+				name:$(this).find('[name^="fRelation_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="fRelation_"]').not('[name$="_span"]').attr('name'),'fRelation_'+index)
+			});
+			$(this).find('[id^="fRelation_"][id$="_span"]').attr('id','fRelation_'+index+'_span');
+			
+			$(this).find('[id^="fOccupation_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="fOccupation_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="fOccupation_"]').not('[id$="_span"]').attr('id'),'fOccupation_'+index),
+				name:$(this).find('[name^="fOccupation_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="fOccupation_"]').not('[name$="_span"]').attr('name'),'fOccupation_'+index)
+			});
+			$(this).find('[id^="fOccupation_"][id$="_span"]').attr('id','fOccupation_'+index+'_span');
+			
+			$(this).find('[id^="fAc_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="fAc_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="fAc_"]').not('[id$="_span"]').attr('id'),'fAc_'+index),
+				name:$(this).find('[name^="fAc_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="fAc_"]').not('[name$="_span"]').attr('name'),'fAc_'+index)
+			
+			});
+			$(this).find('[id^="fAc_"][id$="_span"]').attr('id','fAc_'+index+'_span');		
+			
+			$(this).find('[id^="fContct_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="fContct_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="fContct_"]').not('[id$="_span"]').attr('id'),'fContct_'+index),
+				name:$(this).find('[name^="fContct_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="fContct_"]').not('[name$="_span"]').attr('name'),'fContct_'+index)
+				
+			});
+			$(this).find('[id^="fContct_"][id$="_span"]').attr('id','fContct_'+index+'_span');
+		
+			$(this).find('[id^="fShare_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="fShare_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="fShare_"]').not('[id$="_span"]').attr('id'),'fShare_'+index),
+				name:$(this).find('[name^="fShare_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="fShare_"]').not('[name$="_span"]').attr('name'),'fShare_'+index)
+			});
+			$(this).find('[id^="fShare_"][id$="_span"]').attr('id','fShare_'+index+'_span');		
+			
+			});
+		
+	}
+	if(tableId=='educationDet'){
+		counter3=(counter3-1);
+		
+		$('#'+tableId +'>tbody'+ '>tr').each(function(index){
+			$(this).find('[id^="qualify_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="qualify_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="qualify_"]').not('[id$="_span"]').attr('id'),'qualify_'+index),
+				name:$(this).find('[name^="qualify_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="qualify_"]').not('[name$="_span"]').attr('name'),'qualify_'+index)
+				
+			});
+			$(this).find('[id^="qualify_"][id$="_span"]').attr('id','qualify_'+index+'_span');		
+
+			
+			$(this).find('[id^="education_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="education_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="education_"]').not('[id$="_span"]').attr('id'),'education_'+index),
+				name:$(this).find('[name^="education_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="education_"]').not('[name$="_span"]').attr('name'),'education_'+index)
+				
+			});
+					
+			$(this).find('[id^="univers_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="univers_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="univers_"]').not('[id$="_span"]').attr('id'),'univers_'+index),
+				name:$(this).find('[name^="univers_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="univers_"]').not('[name$="_span"]').attr('name'),'univers_'+index)
+				
+			});
+			$(this).find('[id^="univers_"][id$="_span"]').attr('id','univers_'+index+'_span');		
+			
+			$(this).find('[id^="passYear_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="passYear_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="passYear_"]').not('[id$="_span"]').attr('id'),'passYear_'+index),
+				name:$(this).find('[name^="passYear_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="passYear_"]').not('[name$="_span"]').attr('name'),'passYear_'+index)
+				
+			});
+			$(this).find('[id^="passYear_"][id$="_span"]').attr('id','passYear_'+index+'_span');
+			
+			$(this).find('[id^="subj_"]').not('[id$="_span"]').attr({
+				id:$(this).find('[id^="subj_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="subj_"]').not('[id$="_span"]').attr('id'),'subj_'+index),
+				name:$(this).find('[name^="subj_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="subj_"]').not('[name$="_span"]').attr('name'),'subj_'+index)
+				
+			});
+			$(this).find('[id^="subj_"][id$="_span"]').attr('id','subj_'+index+'_span');
+		
+			
+		});
+		
+	}
+
+	if(tableId=='DetailsId'){
+		counter2=(counter2-1);
+		$('#'+tableId +'>tbody'+ '>tr').each(function(index){
+		
+		$(this).find('[id^="name_"]').not('[id$="_span"]').attr({
+			id:$(this).find('[id^="name_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="name_"]').not('[id$="_span"]').attr('id'),'name_'+index),
+			name:$(this).find('[name^="name_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="name_"]').not('[name$="_span"]').attr('name'),'name_'+index)
+			
+		});
+		$(this).find('[id^="name_"][id$="_span"]').attr('id','name_'+index+'_span');
+
+
+		$(this).find('[id^="designation_"]').not('[id$="_span"]').attr({
+			id:$(this).find('[id^="designation_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="designation_"]').not('[id$="_span"]').attr('id'),'designation_'+index),
+			name:$(this).find('[name^="designation_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="designation_"]').not('[name$="_span"]').attr('name'),'designation_'+index)
+			
+		});
+		$(this).find('[id^="designation_"][id$="_span"]').attr('id','designation_'+index+'_span');
+		
+		$(this).find('[id^="comp_"]').not('[id$="_span"]').attr({
+			id:$(this).find('[id^="comp_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="comp_"]').not('[id$="_span"]').attr('id'),'comp_'+index),
+			name:$(this).find('[name^="comp_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="comp_"]').not('[name$="_span"]').attr('name'),'comp_'+index)
+			
+		});
+		$(this).find('[id^="comp_"][id$="_span"]').attr('id','comp_'+index+'_span');
+		
+		$(this).find('[id^="address_"]').not('[id$="_span"]').attr({
+			id:$(this).find('[id^="address_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="address_"]').not('[id$="_span"]').attr('id'),'address_'+index),
+			name:$(this).find('[name^="address_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="address_"]').not('[name$="_span"]').attr('name'),'address_'+index)
+			
+		});
+		$(this).find('[id^="address_"][id$="_span"]').attr('id','address_'+index+'_span');
+		
+		$(this).find('[id^="contNo_"]').not('[id$="_span"]').attr({
+			id:$(this).find('[id^="contNo_"]').not('[id$="_span"]').attr('id').replace($(this).find('[id^="contNo_"]').not('[id$="_span"]').attr('id'),'contNo_'+index),
+			name:$(this).find('[name^="contNo_"]').not('[name$="_span"]').attr('name').replace($(this).find('[name^="contNo_"]').not('[name$="_span"]').attr('name'),'contNo_'+index)
+			
+	 	});
+		$(this).find('[id^="contNo_"][id$="_span"]').attr('id','contNo_'+index+'_span');
+		});
+	}
+	 if(tableId=='languageId'){
+		 counter4=(counter4-1);
+		 
+		 $('#'+tableId +'>tbody'+ '>tr').each(function(index){
+		 $(this).find('[id^="language_"]').attr({
+				id:$(this).find('[id^="language_"]').attr('id').replace($(this).find('[id^="language_"]').attr('id'),'language_'+index),
+				name:$(this).find('[name^="language_"]').attr('name').replace($(this).find('[name^="language_"]').attr('name'),'language_'+index)
+				
+			});
+		 $(this).find('[id^="language_"][id$="_span"]').attr('id','language_'+index+'_span');		
+			 
+		}); 
+		 	 
+	 }
+
+			
+	}
+
+$(document).on('click','.fa-minus-circle',function(){
+	
+	if(typeof($(this).closest('tr').attr('id')) != "undefined"){
+	
+var nowDays=0;
+var index=$(this).closest('tr').attr('id').split('_')[1];
+if($(this).closest('tr').attr('id')=='loopOnExp_'+index){
+d1=$(this).closest('tr').find('input:text[id="fromExp_'+index+'"]').val();
+d2=$(this).closest('tr').find('input:text[id="toExp_'+index+'"]').val();
+split = d1.split('/');
+split1 = d2.split('/');
+ 
+
+var date = new Date(split[2],split[1] - 1, split[0]);  
+var date1 =new Date(split1[2],split1[1] - 1, split1[0]);
+timestamp = date.getTime();
+timestamp1 = date1.getTime();
+
+if(d1!="" && d2!=""){
+	
+delDays=(timestamp1-timestamp)/((1000 * 60 * 60 * 24));
+nowDays=(countdays-delDays); 
+countdays=nowDays;
+}else{
+	nowDays=countdays;
+}
+
+	var finalMonths=Math.floor(nowDays/months);
+		
+	if(finalMonths<12){
+	$(".totalYearsOfExperience").text("0 Years"+" and "+finalMonths+" Months");
+	$("#yearsOfExperience").val($(".totalYearsOfExperience").text());
+
+	}else{
+	  var years=Math.floor((finalMonths/12));
+	  finalMonths=(finalMonths%12); 
+	  $(".totalYearsOfExperience").text(years+" Years"+" and "+finalMonths+" Months");
+	  $("#yearsOfExperience").val($(".totalYearsOfExperience").text());
+
+	}
+				
+} 
+	}
+	
+var tblId = $(this).closest('table').attr('id');
+$(this).closest('tr').remove();
+reShuffle(tblId);
+
+ 
+});
+
+$(document).on('click','#nomineeDob',function(){
+
+	$(this).datetimepicker({
+   	    format: "dd/mm/yyyy",
+		minView:2,
+		autoclose:true
+	   		
+	}).on('change',function(ev){
+		getAge();
+	});
+	
+});
+
+function getAge(){
+
+	var totalDays=0;
+	var age=0;
+	$("#addFamily tbody tr").each(function(index){
+		
+		d1=($(this).find('input:text[id=fDob_'+index+']').val());
+		split = d1.split('/');
+		var date = new Date(split[2], split[1] - 1, split[0]);
+		timestamp=date.getTime();
+		timestamp1=new Date().getTime();
+		totalDays=(timestamp1-timestamp)/((1000 * 60 * 60 * 24));		
+      age = (totalDays/360);
+      $(this).find('input:text[id=fAge_'+index+']').val(Math.floor(age));
+      
+	});
+	
+}
+
+
+$(document).on('click','.form_datetime2',function(){
+
+
+	$(this).datetimepicker({
+	  format: "dd/mm/yyyy",
+	  minView:2,
+	  autoclose:true
+	});
+
+	
+});
+$('#dateJoining').on('click',function(){
+	$(this).datetimepicker({
+		  format: "dd/mm/yyyy",
+		  minView:2,
+		  autoclose:true
+		 
+	}).on('change',function(ev){
+	calculateDate();
+	});
+	
+});
+
+function calculateDate(){
+
+  var d1= $('#dateOfJoining').val();
+  split = d1.split('/');
+  var date = new Date(split[2], split[1]-1 , split[0]);  
+  if(date.getDate()>15){
+	  date.setDate(1);
+	  date.setMonth(date.getMonth()+7);
+	  
+  }else if(date.getDate()<15){
+	  date.setDate(1);
+	  date.setMonth(date.getMonth()+6);
+  }
+  
+  $("#dateOfConfirmation").val(convertDate(date));  
+
+}
+function convertDate(inputFormat) {
+	  function pad(s) { return (s < 10) ? '0' + s : s; }
+	  var d = new Date(inputFormat);
+	  return [pad(d.getDate()), pad(d.getMonth()+1), d.getFullYear()].join('/');
+	}
+
+ $(document).on('click','div[id^=datetimepicker1_]',function(){
+	
+	$(this).datetimepicker({
+		  format: "dd/mm/yyyy",
+		  minView:2,
+		  autoclose:true
+		}).on('change',function(ev){
+			
+			exampleFunction();
+		});
+	
+}); 
+ $(document).on('click','div[id^=datetimepicker2_]',function(){
+		
+		$(this).datetimepicker({
+			  format: "dd/mm/yyyy",
+			  minView:2,
+			  autoclose:true
+			}).on('change',function(ev){
+				
+				exampleFunction();
+			});
+		
+	}); 
+
+
+ function exampleFunction(){
+		var totalDays=0;
+		$('#expDet tbody tr').each(function(index){
+		 
+	    d1= $(this).find('input:text[id=fromExp_'+index+']').val();
+	    d2= $(this).find('input:text[id=toExp_'+index+']').val();	
+
+	    split = d1.split('/');
+	    split1 = d2.split('/');
+	      
+	    
+	 var date = new Date(split[2], split[1] - 1, split[0]);  
+	 var date1 =new Date(split1[2], split1[1] - 1, split1[0]);
+	 timestamp = date.getTime();
+	 timestamp1 = date1.getTime();
+	 
+	 if(d1!="" && d2!=""){
+	 totalDays+=(timestamp1-timestamp)/((1000 * 60 * 60 * 24));
+	 }
+	  
+	});
+
+	countdays=totalDays;
+	var finalMonths=Math.floor(totalDays/months);
+	if(finalMonths<12){
+	$(".totalYearsOfExperience").text("0 Years"+" and "+finalMonths+" Months");
+	$("#yearsOfExperience").val($(".totalYearsOfExperience").text());
+
+	}else{
+	  var years=Math.floor((finalMonths/12));
+	  finalMonths=(finalMonths%12); 
+	  $(".totalYearsOfExperience").text(years+" Years"+" and "+finalMonths+" Months");
+	  $("#yearsOfExperience").val($(".totalYearsOfExperience").text());
+
+	}  
+
+	};
+	
+	$('#religionName').change(function(){
+		getReligion($(this).val());
+	});
+	
+	getReligion('${details.religion}');
+});
+
+
+function getReligion(religionStr){
+	var relArray = 'Sikh,Christian,Hindu,Islam,Jain'.split(',');
+	
+	if($.inArray(religionStr, relArray) > -1){
+		$("#otherRel").hide();
+    }else{
+		$("#otherRel").show();
+	}
+}    	
+
+</script>
+
+</head>
+<body>
+<jsp:include page="../includes/mobile_nav.jsp"></jsp:include>
+        <main id="panel" class="panel">  
+        <i class="fa fa-bars btn-hamburger js-slideout-toggle" aria-hidden="true"></i>
+	 <jsp:include page="../includes/header.jsp"></jsp:include>  
+		<div class="page-title">
+		<img src="<%=request.getContextPath()%>/resources/images/Contactus-head.jpg" alt="About US"/>
+			<div class="sec-title"><h1>Edit Form</h1></div>
+		</div>
+		<div class="joining-form">
+			<div class="container-fluid">
+				<div class="row">
+					 <div class="col-md-12">
+					    <div class="back-btn">
+
+                                        <div class="btn btn-default hvr-ripple-out hvr-ripple-out-gray"><a href="<%=request.getContextPath()%>/success">Back</a></div>
+
+                                    </div>
+					 
+					
+		<form class="form-horizontal" action="<%=request.getContextPath()%>/admin/addDetails" id="employeeDetails" method="post">
+					 <div class="panel-group" id="accordion">
+						 <div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a class="active" data-toggle="collapse" data-parent="#accordion" href="#collapse1"><b><i class="fa fa-user" aria-hidden="true"></i>
+									 Personal Information</b></a>
+								</h4>
+							</div>
+							<div id="collapse1" class="panel-collapse collapse in">
+									<div class="panel-body">
+											<div class="mandatory-div">(<span>*</span>) Mandatory fields</div>
+											<div class="row">
+												<div class="col-md-6">
+													<div class="form-group"> 
+														<label class="control-label col-md-4" for="Name">First Name <span class="mandatoryAst">*</span> :</label>
+														<div class="col-md-8">
+															<input type="text" id="txtEmpName" name="txtEmpName" value="${details.txtEmpName}" class="form-control" placeholder="First Name" autofocus>
+													        <span style="color:red;" id="txtEmpName_span"></span>
+													        
+														</div>
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Email">Middle Name <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<input type="text" name="fathersName" id="fathersName"  value="${details.fathersName}" class="form-control" placeholder="Middle Name">
+														    <span style="color:red;" id="fathersName_span"></span>
+														    
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Email">Last Name <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<input type="text" name="lastName" id="lastName"  value="${details.lastName}" class="form-control" placeholder="Last Name">
+														    <span style="color:red;" id="lastName_span"></span>
+														    
+														</div>	
+													</div>
+													
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Date of Birth">Date of Birth <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<fmt:formatDate var="dob"  value="${details.dateOfBirth}" pattern="dd/MM/yyyy"/>
+															<div id="datetimepicker" class="date form_datetime2 calendar-div">
+														    	<input size="16" id="dob"  readonly name="Dob" value="${dob}" id="Dob" class="form-control" placeholder="Date of Birth" type="text">
+																<span class="add-on"><i class="fa fa-calendar"></i></span>
+																<span style="color:red;" id="dob_span"></span>
+																
+															</div>
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Gender">Gender <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<div class="radio radio-inline">
+																<input type="radio"  value="Male" id="radio1" name="Gender" <c:if test="${details.gender == 'Male'}"><c:out value='checked="checked"'/></c:if>>
+																<label for="radio1">Male</label>
+															</div>
+															<div class="radio radio-inline">
+																<input type="radio" value="Female" id="radio2" name="Gender" <c:if test="${details.gender == 'Female'}"><c:out value='checked="checked"'/></c:if>>
+																<label for="radio2">Female</label>
+															</div>
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Marital Status">Marital Status <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<select name="maritalStat">
+																<option <c:if test="${details.maritalStatus == 'Single'}"><c:out value='selected="selected"'/></c:if>>Single</option>
+																<option <c:if test="${details.maritalStatus == 'Married'}"><c:out value='selected="selected"'/></c:if>>Married</option>
+															    <option <c:if test="${details.maritalStatus == 'divorced'}"><c:out value='selected="selected"'/></c:if>>divorced</option>
+															</select>
+														</div>
+															
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Religion">Religion <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<select name="religionName" id="religionName">
+															
+															  <c:forEach items="${religion}" var="rel">
+ 															       <c:choose>
+ 															       <c:when test="${(details.religion ne 'Sikh') && (details.religion ne 'Christian') && (details.religion ne 'Hindu') && (details.religion ne 'Islam') && (details.religion ne 'Jain')}"> 
+ 															       <option ${rel=='Other'?'selected':''}>${rel}</option>
+ 															       </c:when> 
+															       <c:otherwise> 
+															       <option <c:if test="${details.religion == rel}"><c:out value='selected="selected"'/></c:if>>${rel}</option>
+														           </c:otherwise> 
+														   
+ 															       </c:choose> 
+																												      
+													          </c:forEach>
+															</select>
+																												
+													   	   <div id="otherRel" style="display: none;">
+														     <input type='text' id='otherVal' name="otherVal" class='form-control' value="${details.religion}" placeholder='Other'>
+														    </div>
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Language Know">Language Know <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<table class="table table-bordered languageTbl" id="languageId">
+															      <thead>
+															         <tr>
+															            <th>Language</th>
+															            <th>Read</th>
+															            <th>Write</th>
+															            <th>Speak</th>
+															            <th class="text-center"><a href="javascript:void(0);"><i aria-hidden="true" class="fa fa-plus-circle"></i></a></th>
+															         </tr>
+															      </thead>
+															      <tbody>
+															      <c:set var="counter4" value="0"/>
+															      
+															      <c:forEach var="row" items="${details.language}" varStatus="looper">
+															       <c:set value="${fn:split(row.eligibility,',')}" var="eligible" ></c:set>
+															       <c:set value="${fn:join(eligible,' ')}" var="eligible123"></c:set>
+															
+															      <tr>
+															      <td style="display:none;"><input type="hidden" name= "langId_${counter4}" value="${row.id}"/></td>
+															      <td>
+															      <select name="language_${counter4}" id="language_${counter4}">
+															      <c:forEach items="${language}" var="lang">
+														          <option <c:if test="${row.languageName == lang}"><c:out value='selected="selected"'/></c:if>>${lang}</option>
+													               </c:forEach>
+															      </select>
+<%-- 															      <input type='text' class='form-control' name="language_${counter4}" value="${row.languageName}"/> --%>
+															      <span id="language_${counter4}_span" style="color: red;"></span>
+															      </td>
+													     	      <td>
+															      <div class="checkbox checkbox-primary">
+															      <input id="readCheck" class="styled" type="checkbox" value="read" name="langAction_${counter4}" <c:if test="${fn:containsIgnoreCase(eligible123,'read')}"><c:out value='checked="checked"'/></c:if>>
+															      <label for="readCheck_${counter4}"></label>
+															      </div>
+															      </td>
+															      <td>
+															      <div class="checkbox checkbox-primary">
+															      <input id="writeCheck" class="styled" type="checkbox" value="write" name="langAction_${counter4}" <c:if test="${fn:containsIgnoreCase(eligible123,'write')}"><c:out value='checked="checked"'/></c:if>>
+															      <label for="writeCheck_${counter4}"></label>
+															      </div>
+															      </td>
+															      <td>
+															      <div class="checkbox checkbox-primary">
+															      <input id="speakCheck" class="styled" type="checkbox" value="speak" name="langAction_${counter4}" <c:if test="${fn:containsIgnoreCase(eligible123,'speak')}"><c:out value='checked="checked"'/></c:if>>
+															      <label for="speakCheck_${counter4}"></label>
+															      </div>
+															      </td>
+															      <td class='text-center'></td>
+															     </tr>
+															      <c:set var="counter4" value="${counter4+1}"/>
+															      </c:forEach>
+															        <input type="hidden" name="laguageCount" id="laguageCount"/>
+															      </tbody>
+															   </table>
+														</div>	
+													</div>
+												 <div class="form-group">
+														<label class="control-label col-md-4" for="Driving License No.">Date of Joining :</label> 
+														<div class="col-md-8">
+															<div id="dateJoining" class="date form_datetime2 calendar-div">
+															    <fmt:formatDate var="joining" value="${details.empMaster.dateOfJoining}" pattern="dd/MM/yyyy"/>
+														    	<input size="16" readonly class="form-control" placeholder="Date of Joining" type="text" id="dateOfJoining" name="dateOfJoining" value="${joining}"> 
+															<span class="add-on"><i class="fa fa-calendar"></i></span>
+														</div>
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Driving License No.">Date of Confirmation :</label> 
+														<div class="col-md-8">
+														    <fmt:formatDate var="confirm"  value="${details.empMaster.dateOfConfirmation}" pattern="dd/MM/yyyy"/>
+															<input type="text" class="form-control" value="${confirm}" readonly="readonly" id="dateOfConfirmation" name="dateOfConfirmation" placeholder="Date of Confirmation">
+														</div>	
+													</div>
+												
+													<div class="form-group"> 
+														<label class="control-label col-md-4" for="Blood Group">Blood Group :</label>
+														<div class="col-md-8">
+													          <select name="bloodGrp" class="form-control">
+														<c:forEach items="${bloodGrp}" var="bld">
+													    <option <c:if test="${details.bloodGroup == bld}"><c:out value='selected="selected"'/></c:if>>${bld}</option>      
+													    </c:forEach>
+													          
+													          </select>
+<%-- 															<input type="text" class="form-control" value="${details.bloodGroup }" name="bloodGrp" placeholder="Blood Group"> --%>
+														</div>
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Driving License No.">Driving License No. :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" value="${details.driversLicense }" name="licenseNo" placeholder="Driving License No.">
+														</div>	
+													</div>
+												</div>
+												<div class="col-md-6">
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Nationality">Nationality <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" value="${details.nationality }" name="nationality" placeholder="Nationality">
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Pan Card No.">Pan Card No. :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" name="panNo" value="${details.panNo}" placeholder="Pan Card No.">
+														    <span style="color: red;" id="panNo_span"></span>
+														    
+														</div>	
+													</div>
+													
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Aadhar Card No.">Aadhar Card No. :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" name="adharNo" value="${details.adharCard}" placeholder="Adhar Card No.">
+														</div>	
+													</div>
+													
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Passport">Passport :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" name="passport" value="${details.passportNo}" placeholder="Passport">
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Mobile">Mobile <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" id="mobile" name="mobile" value="${details.contactNo1}" placeholder="Mobile">
+														    <span style="color:red;" id="mobile_span"></span>
+														    
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Alternative Mobie">Alternative Mobile :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" id="alterMobile" name="alterMobile" value="${details.contactNo2}" placeholder="Alternative Mobie">
+													        <span style="color:red;" id="alterMobile_span"></span>
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Email">Email <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" name="email" value="${details.empMaster.email}" placeholder="Email">
+														</div>	
+													</div>
+											        	<div class="form-group">
+														<label class="control-label col-md-4" for="ESIC Number">ESIC Number :</label> 
+														<div class="col-md-8">
+															<input type="text" name="esicNumber" value="${details.esicNo}" class="form-control" placeholder="ESIC Number">
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-4" value="" for="UAN Number">UAN Number :</label> 
+														<div class="col-md-8">
+															<input type="text" class="form-control" name="uanNumber" value="${details.uanNo}" placeholder="UAN Number">
+														</div>	
+													</div>
+											
+													<div class="form-group">
+														<label class="control-label col-md-4" for="Address">Permanent Address <span class="mandatoryAst">*</span> :</label> 
+														<div class="col-md-8">
+															<textarea rows="" cols="" name="permanentAdd" id="permanentAdd" placeholder="Permanent"><c:out value="${details.permenantAddress}"></c:out></textarea>
+															<span style="color:red;" id="permanentAdd_span"></span>
+															
+														</div>	
+													</div>
+													<div class="form-group">
+													<label class="control-label col-md-4" for="Address">Temporary Address <span class="mandatoryAst">*</span> :</label>
+													   <div class="col-md-8">
+													      <label><input type="checkbox" id="isSame"> Same as above</label>
+                                                          <textarea rows="" cols="" name="tempAdd"  id="tempAdd" placeholder="Temporary"><c:out value="${details.currentAddress}"></c:out></textarea>
+                                      <!--<textarea rows="" cols="" name="tempAdd" id="tempAdd" class="form-control" placeholder="Temporary"></textarea> -->
+														       <span style="color:red;" id="tempAdd_span"></span>													 
+ 													   </div>
+																										
+													</div>
+													
+												</div>
+											</div>		
+										</div>
+							</div>
+						</div>
+ 						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse2"><b><i class="fa fa-users" aria-hidden="true"></i>
+									 Family Details</b></a>
+								</h4>
+							</div>
+							<div id="collapse2" class="panel-collapse collapse">
+							
+									<div class="panel-body">
+										<div class="mandatory-div"><span>( All fields are Mandatory )</span></div>
+									   <table class="table table-bordered" id="addFamily">
+									      <thead>
+									         <tr>
+									            <th>Name</th>
+									            <th width="15%">DOB</th>
+									            <th width="7%">Age</th>
+									            <th>Relation</th>
+									            <th>Occupation</th>
+									            <th>Aadhar Card<a href="javascript:void(0);" data-toggle="tooltip" data-placement="bottom" title=" It is mandatory to submit for ESIC,in case of failure the employer is not responsible."><i class="fa fa-info-circle" aria-hidden="true"></i></a></th>
+									            <th>Contact No.</th>
+									            <th>Share<a href="javascript:void(0);" data-toggle="tooltip" data-placement="bottom" title=" This is for PF and ESIC Contribution, you can share maximum with 2 person, put your share in %"><i class="fa fa-info-circle" aria-hidden="true"></i></a></th>
+									            <th class="text-center"><a href="javascript:void(0);"><i class="fa fa-plus-circle" aria-hidden="true"></i></a></th>
+									         </tr>
+									      </thead>
+									      <tbody>
+									      <c:set var="counter1" value="0"></c:set>
+									      <c:forEach items="${details.familyDetail}" var="row">
+     
+									      <tr>
+									        <td style="display: none;"><input type="hidden" name="famRowId_${counter1}" value="${row.id}"></td>
+									        <td><input type='text' id='txtMemberName_${counter1}' value="${row.txtMemberName}" name='txtMemberName_${counter1}' class='form-control'>
+									             <span style='color:red;' id='txtMemberName_${counter1}_span'></span>									        
+									        </td>
+									        <td>
+									            <fmt:formatDate var="dob" value="${row.dateOfBirth}" pattern="dd/MM/yyyy"/>
+									            <div id='nomineeDob' class='date form_datetime2 calendar-div'>
+                                                <input size='16' readonly name='fDob_${counter1}' id='fDob_${counter1}' value="${dob}" class='form-control' type='text'> 
+                                                <span class='add-on'><i class='fa fa-calendar'></i></span></div>
+                                                <span style='color:red;' id='fDob_${counter1}_span'></span>
+                                            </td>
+									        <td><input type='text' id='fAge_${counter1}' name='fAge_${counter1}' value="${row.age}" class='form-control' readonly="readonly"></td>
+		 									    <td><input type='text' id='fRelation_${counter1}' name='fRelation_${counter1}' value="${row.relation}" class='form-control'>
+		 									        <span style='color:red;' id='fRelation_${counter1}_span'></span>
+		 									    </td>
+		 									    <td><input type='text' id='fOccupation_${counter1}' name='fOccupation_${counter1}' value="${row.occupation}" class='form-control'>
+		 									        <span style='color:red;' id='fOccupation_${counter1}_span'></span>
+		 									    </td>
+		 									    <td><input type='text' id='fAc_${counter1}' name='fAc_${counter1}' value="${row.adharCard}" class='form-control'>
+		 									        <span style='color:red;' id='fAc_${counter1}_span'></span>
+		 									        
+		 									    </td>
+		 									    <td><input type='text' id='fContct_${counter1}' name='fContct_${counter1}' value="${row.contactNo}" class='form-control'>
+		 									        <span style='color:red;' id='fContct_${counter1}_span'></span>
+		 									    </td>
+		 									    <td><input type='text' id='fShare_${counter1}' name='fShare_${counter1}' value="${row.sharePercentage}" class='form-control'>
+		 									        <span style='color:red;' id='fShare_${counter1}_span'></span>
+		 									    </td>
+		 									    <td class='text-center'></td>
+									        								        
+									      </tr> 									      
+									     	<c:set var="counter1" value="${counter1+1}"></c:set>								      
+									      </c:forEach>
+									      </tbody>
+									   </table>
+									</div>
+									<input type="hidden" id="familyCount" name="familyCount" value="familyDetls"/>
+									
+							</div>
+					   </div>
+					
+					   <div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse3"><b><i class="fa fa-book" aria-hidden="true"></i>
+									 Education Details</b></a>
+								</h4>
+							</div>
+							<div id="collapse3" class="panel-collapse collapse">
+									<div class="panel-body">
+										<div class="mandatory-div"><span>( All fields are Mandatory )</span></div>
+									   <table class="table table-bordered" id="educationDet">
+									      <thead>
+									         <tr>
+									            <th>Qualification</th>
+									            <th>Education</th>
+									            <th>University/Institute</th>
+									            <th width="10%">Year of Passing</th>
+									            <th>Major Subject</th>
+									            <th class="text-center"><a href="javascript:void(0);"><i class="fa fa-plus-circle" aria-hidden="true"></i></a></th>	
+									         </tr>
+									      </thead>
+									      <tbody>
+									      <c:set value="0" var="counter3"></c:set>
+									      <c:forEach items="${details.qualification}" var="row">
+									      
+									      <tr>
+									      <td style="display:none;"><input type="hidden" name= "eduDetlId_${counter3}" value="${row.id}"/></td>
+									      <td>
+									      <select  name='qualify_${counter3}' id='qualify_${counter3}' class='form-control'>
+									    
+									      <c:forEach items="${empQualification}" var="qual">
+									      <option <c:if test="${row.eduQualify == qual}"><c:out value='selected="selected"'></c:out></c:if>>${qual}</option>
+    								      </c:forEach>
+									      </select>
+									      <span style='color:red;' id='qualify_${counter3}_span'></span>
+									      </td>
+                                          <td>
+                                          <select name='education_${counter3}' id='education_${counter3}' class='form-control'>
+                                          
+                                          <c:forEach items="${educate}" var="edu">
+                                          <option <c:if test="${row.education == edu}"><c:out value='selected="selected"'></c:out></c:if>>${edu}</option>
+                                          </c:forEach>
+ 
+                                          </select>
+                                          <span style='color:red;' id='education_${counter3}_span'></span>
+                                          
+                                          <td><input type='text' name='univers_${counter3}' id='univers_${counter3}' value="${row.university}" class='form-control'>
+                                          <span style='color:red;' id='univers_${counter3}_span'></span>
+                                          </td>  
+                                          <td><input type='text' name='passYear_${counter3}' id='passYear_${counter3}' value="${row.passYear}" class='form-control'>
+                                          <span style='color:red;' id='passYear_${counter3}_span'></span>
+                                          </td>
+                                          <td><input type='text' name='subj_${counter3}' id='subj_${counter3}' value="${row.mainSubject}" class='form-control'>
+                                          <span style='color:red;' id='subj_${counter3}_span'></span>
+                                          </td>
+                                          <td class='text-center'></td>
+                                          </tr>
+									      <c:set  var="counter3" value="${counter3+1}"></c:set>
+									      </c:forEach>
+									    			    									      
+									      <input type="hidden" name="eduDetlCount" id="eduDetlCount"/>
+									      </tbody>
+									   </table>
+									</div>
+								</div>
+					   </div>
+					   <div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse4"><b><i class="fa fa-briefcase" aria-hidden="true"></i>
+									 Experience</b></a>
+								</h4>
+							</div>
+							<div id="collapse4" class="panel-collapse collapse">
+									<div class="panel-body">
+									   <table class="table table-bordered" id="expDet">
+										<thead>
+										  <tr>
+										    <th rowspan="2">Organization</th>
+										    <th width="27%" colspan="2" scope="colgroup">Period</th>
+										    <th colspan="2" scope="colgroup">Designation</th>
+										    <th rowspan="2">Designation of Immediate Superior</th>
+										    <th  rowspan="2">Reason for Leaving</th>
+										    <th class="text-center" rowspan="2"><a href="javascript:void(0);"><i class="fa fa-plus-circle" aria-hidden="true"></i></a></th>
+										  </tr>
+										  <tr>
+										    <th scope="col">From</th>
+										    <th scope="col">To</th>
+										    <th scope="col">Last Position held</th>
+										    <th scope="col">Last CTC <a href="javascript:void(0);" data-toggle="tooltip" data-placement="bottom" title="CTC should be in Numeric only."><i class="fa fa-info-circle" aria-hidden="true"></i></a></th>
+										  </tr>
+										  </thead>
+										  <tbody>
+										  
+										  <c:set var="counter" value="0"></c:set>
+										  <c:forEach var="row" items="${details.experience}">
+										 										  
+										  <tr id='loopOnExp_${counter}'>
+										  <td style="display:none;"><input type="hidden" name= "expRowId_${counter}" value="${row.id}"/></td>
+										  <td><input type='text'  name='organization_${counter}' value="${row.companyName}" class='form-control' id='organization_${counter}'></td>
+		                                  <td>
+		                                      <fmt:formatDate var="from" value="${row.fromDate}" pattern="dd/MM/yyyy"/>
+		                                      <div id='datetimepicker1_${counter}' class='date form_datetime2 calendar-div'>
+		                                      <input size='16' name='fromExp_${counter}' value="${from}" readonly class='form-control' placeholder='From' id='fromExp_${counter}' type='text'>
+				                              <span class='add-on'><i class='fa fa-calendar'></i></span>
+			                           	</div>	
+			                               </td>
+		                                        <td>
+		                                        <fmt:formatDate var="to" value="${row.toDate}" pattern="dd/MM/yyyy"/>
+		                                        <div id='datetimepicker2_${counter}' class='date form_datetime2 calendar-div'>
+			                                	<input size='16' name='toExp_${counter}'  value="${to}" readonly class='form-control' placeholder='To' id='toExp_${counter}' type='text'>
+				                            	<span class='add-on'><i class='fa fa-calendar'></i></span>
+				                                </div></td>
+		                                         
+		                                        <td><input type='text' name='position_${counter}' value="${row.lastPositionHeld}" class='form-control' id='position_${counter}'></td>
+		                                        <td><input type='text' name='ctc_${counter}' value="<abc:encdec isenc="false" value="${row.ctc}"></abc:encdec>" class='form-control' id='ctc_${counter}'>
+		                                            <span style='color:red;' id='ctc_${counter}_span'></span>
+		                                        </td>
+		                                        <td><input type='text' name='superior_${counter}' value="${row.designationOfimmediateSuperior}" class='form-control' id='superior_${counter}'></td>
+		                                        <td><input type='text' name='reasonLeaving_${counter}' value="${row.reasonForLeaving}" class='form-control' id='reasonLeaving_${counter}'></td>
+		                                        <td class='text-center'></td>									   
+		                                   </tr>
+										   <c:set var="counter" value="${counter+1}"></c:set>
+										  </c:forEach>
+										  
+										  
+										  </tbody>
+										  <tfoot>
+										   <tr class="expLine">
+										  	<td>Total years of Exp.</td>
+										  	<td colspan="7">
+										  	<span class="totalYearsOfExperience">${details.totalYearsOfExperience}</span>
+										  	</td>
+										  	<input type="hidden" name="yearsOfExperience" id="yearsOfExperience" value="0 Years and 0 Months"/>
+										  	
+										  </tr>
+								    	 </tfoot>
+										</table>
+									</div>
+								<input type="hidden" name="expCount" id="expCount"/> 
+							</div>
+					   </div>
+					   
+					   <div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse5"><b><i class="fa fa-file-text" aria-hidden="true"></i>
+									 Reference Details</b></a>
+								</h4>
+							</div>
+							<div id="collapse5" class="panel-collapse collapse">
+									<div class="panel-body">
+									    <div class="mandatory-div"><span>( All fields are Mandatory )</span></div>
+									  	<table class="table table-bordered" id="DetailsId">
+									      <thead>
+									         <tr>
+									            <th>Name</th>
+									            <th>Designation</th>
+									            <th>Name of Company</th>
+									            <th>Address</th>
+									            <th width="15%">Contact No.</th>
+									            <th class="text-center"><a href="javascript:void(0);"><i class="fa fa-plus-circle" aria-hidden="true"></i></a></th>
+									         </tr>
+									      </thead>
+									      <tbody>
+									      <c:set var="counter2" value="0"></c:set>
+									      <c:forEach var="row" items="${details.reference}">
+						      
+									      <tr>
+									          <td style="display:none;"><input type="hidden" name= "referenceId_${counter2}" value="${row.id}"/></td>
+									          <td><input type='text' name='name_${counter2}'  value="${row.referenceName}"  class='form-control'>
+									           <span style='color:red;' id='name_${counter2}_span'></span>
+									          </td>
+                                              <td><input type='text' name='designation_${counter2}' value="${row.designation}" class='form-control'>
+                                               <span style='color:red;' id='designation_${counter2}_span'></span>
+                                              </td>
+                                              <td><input type='text' name='comp_${counter2}'    value="${row.companyName}"   class='form-control'>
+                                               <span style='color:red;' id='comp_${counter2}_span'></span>
+                                              </td>
+                                              <td><input type='text' name='address_${counter2}' value="${row.address}"  class='form-control'>
+                                               <span style='color:red;' id='address_${counter2}_span'></span>
+                                              </td>
+                                              <td><input type='text' name='contNo_${counter2}' value="${row.contactNo}"  class='form-control'>
+                                               <span style='color:red;' id='contNo_${counter2}_span'></span>
+                                              </td>
+                                              <td class='text-center'></td>
+                                          </tr>
+								         <c:set var="counter2" value="${counter2+1}"></c:set>
+									      </c:forEach>
+									      
+									   <input type="hidden" name="refDetails" id="refDetails"/>
+									      </tbody>
+									   
+									   </table>			
+									      <div class="mandatory-div pull-left"><span><b> Note :</b> First should be for previous employer's HR Department and second one should be either company's colleague details.</span></div>		
+								  </div>
+								</div>
+						</div>
+						
+					 		
+					   <div class="panel panel-default" id="forOfficeUse">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse6"><b><i class="fa fa-university" aria-hidden="true"></i>
+									 For Office Use</b></a>
+								</h4>
+							</div>
+							<div id="collapse6" class="panel-collapse collapse">
+									<div class="panel-body">
+										<table class="table table-bordered">
+										  <col>
+										  <col>
+										  <colgroup span="3"></colgroup>
+										  <thead>
+										    <tr>
+										      <th scope="col"></th>
+										      <th>Preliminary Interview By</th>
+										      <th>Technical Interview By</th>
+										      <th>Final Interview By</th>
+										    </tr>
+										  </thead>
+										  <tbody>
+										    <tr>
+										      <th>Name</th>
+										      <td><input type="text" name="interview1" value="${not empty filledByHr.interviewRound1By ? filledByHr.interviewRound1By:''}" class="form-control"></td>
+										      <td><input type="text" name="interview2" value="${not empty filledByHr.interviewRound2By ? filledByHr.interviewRound2By:''}"  class="form-control"></td>
+										      <td><input type="text" name="interview3" value="${not empty filledByHr.finalRoundBy ? filledByHr.finalRoundBy:''}" class="form-control"></td>
+										    </tr>
+										    <tr>
+										      <th>Designation</th>
+										      <td><input type="text" name="des1" value="${not empty filledByHr.designation1 ? filledByHr.designation1:''}" class="form-control"></td>
+										      <td><input type="text" name="des2" value="${not empty filledByHr.designation2 ? filledByHr.designation2:''}"  class="form-control"></td>
+										      <td><input type="text" name="des3" value="${filledByHr.designation3}"  class="form-control"></td>
+										    </tr>
+										    <tr>
+										      <th>Signature</th>
+										      <td><input type="text" name="sign1" class="form-control"></td>
+										      <td><input type="text" name="sign2" class="form-control"></td>
+										      <td><input type="text" name="sign3" class="form-control"></td>
+										    </tr>
+										  </tbody>
+										</table>
+											<div class="form-group">	
+												<label class="control-label col-md-4" for="Designation">Selection Information</label>
+											</div>
+											<div class="row">
+												<div class="col-md-6">											
+													<div class="form-group"> 
+														<label class="control-label col-md-3" for="Business">Business :</label>
+														<div class="col-md-9">
+                                                            <select name="business" id="business" class="form-control">
+                                                            <option value="" selected="selected">Select</option>
+                                                            <c:forEach items="${hrBusiness}" var="business">
+                                                            <option <c:if test="${business == filledByHr.business}"><c:out value='selected="selected"'/></c:if>>${business}</option>
+                                                            </c:forEach>
+                                                            </select>
+                                                            <span id="business_span" style="color: red;"></span>
+														</div>
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-3" for="Department">Department :</label> 
+														<div class="col-md-9">
+														<select name="department" id="department" class="form-control">
+														<option value="" selected="selected">Select</option>
+														<c:forEach items="${hrDepartment}" var="dept">
+														<option <c:if test="${dept == filledByHr.department}"><c:out value='selected="selected"'/></c:if>>${dept}</option>
+														</c:forEach>
+														</select>
+														<span id="department_span" style="color: red;"></span>
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-3" for="Location">Location :</label> 
+														<div class="col-md-9">
+														<select name="location" id="location" class="form-control">
+														<option selected="selected" value="">Select</option>
+														<c:forEach items="${hrLocation}" var="etlLocation">
+														<option <c:if test="${etlLocation == filledByHr.location}"><c:out value='selected="selected"'/></c:if>>${etlLocation}</option>
+														</c:forEach>
+														</select>
+														<span id="location_span" style="color: red;"></span>														
+														</div>	
+													</div>
+													<div class="form-group">
+														<label class="control-label col-md-3" for="Function">Function :</label> 
+														<div class="col-md-9">
+                                                            <select name="function" id="function" class="form-control">
+                                                            <option value="" selected="selected">Select</option>
+                                                            <c:forEach items="${hrFunction}" var="hrfunc">
+                                                            <option <c:if test="${hrfunc == filledByHr.function}"><c:out value='selected="selected"'/></c:if>>${hrfunc}</option>
+                                                            </c:forEach>
+                                                            </select>
+                                                            <span id="function_span" style="color: red;"></span>
+														</div>	
+													</div>
+												</div>
+												<div class="col-md-6">	
+													<div class="form-group">
+														<label class="control-label col-md-3" for="Designation">Designation :</label> 
+														<div class="col-md-9">
+														<select name="designation" id="designation" class="form-control">
+														<option value="" selected="selected">Select</option>
+														<c:forEach items="${hrJobs}" var="jobs">
+														<option <c:if test="${jobs == filledByHr.designation}"><c:out value='selected="selected"'/></c:if>>${jobs}</option>
+														</c:forEach>
+														</select>
+														<span id="designation_span" style="color: red;"></span>
+														</div>	
+													</div>
+<!-- 													<div class="form-group"> -->
+<!-- 														<label class="control-label col-md-3" for="Gross Salary">Gross Salary :</label>  -->
+<!-- 														<div class="col-md-9"> -->
+<!-- 															<input type="text" class="form-control" placeholder="Gross Salary"> -->
+<!-- 														</div>	 -->
+<!-- 													</div> -->
+													<div class="form-group">
+														<label class="control-label col-md-3" for="CTC">CTC :</label> 
+														<div class="col-md-9">
+															<input type="text"  name="ctc" id="EmpCtc" value="<abc:encdec isenc="false" value="${filledByHr.ctc}"></abc:encdec>" class="form-control" placeholder="CTC">
+														   	<span id="EmpCtc_span" style="color: red;"></span>
+														   
+														</div>	
+													</div>
+												
+												    <div class="form-group">
+														<label class="control-label col-md-3" for="CTC">Employee Status :</label> 
+														<div class="col-md-9">
+															<select name="empStatus" id="empStatus" class="form-control">
+															<option value="" selected="selected">Select</option>
+															<c:forEach items="${hrStatus}" var="status" varStatus="loop">
+															<option <c:if test="${status == filledByHr.empStatus}"><c:out value='selected="selected"'/></c:if>>${status}</option>
+															</c:forEach>
+															</select>
+															<span id="empStatus_span" style="color: red;"></span>
+															</div>	
+													</div>	
+														<input type="hidden" name="FilledHr" value="${filledByHr.id}">											
+													<input type="hidden" name="empDetlId" id="empDetlId"/>
+								                    	<input type="hidden" name="totalDaysCount" id="totalDaysCount">
+												</div>	
+											</div>								
+										</div>
+					         	</div>
+						</div>
+				 <div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse7"><b><i class="fa fa-paperclip" aria-hidden="true"></i>Attachments</b></a>
+								</h4>
+							</div>
+							<div id="collapse7" class="panel-collapse collapse">
+									<div class="panel-body">   
+                        <table class="table table-bordered horizontale-table">
+						  <thead>
+						    <tr>
+						      <th width="9%" class="text-center">Sr. No.</th>
+						      <th width="49%">Documents</th>
+						      <th width="12%">Submitted</th>
+						      <th width="30%">Expected Date of Submission / Comments</th>
+						    </tr>
+						  </thead>
+						  <tbody>
+						  <c:set var="counter" value="1"></c:set>
+						  <c:forEach items="${attachment}" var="row" varStatus="loop">
+						    <tr>
+						      <td class="text-center">${counter}</td>
+						      <td>${row.name}</td>
+						      <td><div class='checkbox checkbox-primary'>
+						      <input id="recCheck_${counter}" class="styled" type="checkbox" name="isReceived_${counter}" <c:if test="${(attachments[loop.index].attchment.id==counter) and (attachments[loop.index].isReceived==true)}"><c:out value='checked="checked"'/></c:if>>
+						      <label for="recCheck_${counter}"></label>
+						      </div></td>
+						      <td><input type="text" name="comments_${counter}" value="${attachments[loop.index].comment}" class="form-control"></td>
+						    </tr>
+						    <c:set var="counter" value="${counter+1}"></c:set>
+						  </c:forEach>
+						   <input type="hidden" name="documents"  id="documents">                                 
+						  </tbody>
+						  
+						</table>
+						</div>
+						</div>
+						</div>
+				
+				   </div>
+			   
+					  
+          		</form>
+					<div class="jonSubmitBtn">
+					 
+
+                                     <button id="updateData" class="btn btn-primary hvr-ripple-out hvr-ripple-out-orange" onclick="submit();">Update</button>
+                                     <button class="btn btn-default hvr-ripple-out hvr-ripple-out-gray" onclick="location.href='<%=request.getContextPath()%>/success'">Cancel</button>
+
+                     
+												
+							</div>
+				</div>	
+			</div>
+			</div>
+		</div>
+							
+       <jsp:include page="../includes/footer.jsp"></jsp:include>
+       </main>
+</body>
+</html>
